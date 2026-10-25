@@ -11,7 +11,7 @@
 <script>
 (function(){
 "use strict";
-var data=[{"name":"Maths Quest","repo":"mathsquest","version":"2026","tag":"Mathématiques","icon":"🔢","desc":"Des îles, des exercices, des défis et une progression adaptée."},{"name":"Monde CE1–CE2 Fantasy","repo":"e-ecole","version":"Prototype","tag":"Multi-matières","icon":"🏰","desc":"Mathématiques, français et découvertes dans un univers fantasy."}];
+var data=[{"name":"Maths Quest","repo":"mathsquest","version":"2026","tag":"Mathématiques","icon":"🔢","desc":"Des îles, des exercices, des défis et une progression adaptée."},{"name":"Monde CE1–CE2 Fantasy","repo":"e-ecole","status":"verification","version":"Prototype","tag":"Multi-matières","icon":"🏰","desc":"Mathématiques, français et découvertes dans un univers fantasy."}];
 var platform="elc-education";
 var gh="https://github.com/estebancaballeroai/";
 var pages="https://estebancaballeroai.github.io/";
@@ -22,18 +22,18 @@ function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&am
 function link(s){return pages+encodeURIComponent(s)+"/"}
 function render(){
  var term=q.value.trim().toLocaleLowerCase("fr");
- var visible=data.filter(function(a){return (filter==="all"||(filter==="published"&&a.repo)||(filter==="dev"&&!a.repo))&&(!term||[a.name,a.desc,a.tag,a.version].join(" ").toLocaleLowerCase("fr").includes(term))});
+ var visible=data.filter(function(a){return (filter==="all"||(filter==="published"&&a.repo&&a.status!=="verification")||(filter==="dev"&&(!a.repo||a.status==="verification")))&&(!term||[a.name,a.desc,a.tag,a.version].join(" ").toLocaleLowerCase("fr").includes(term))});
  count.textContent=visible.length+" projet"+(visible.length>1?"s":"");
  noResult.classList.toggle("show",visible.length===0);
  cards.innerHTML=visible.map(function(a){
- var index=data.indexOf(a),published=!!a.repo;
- return '<article class="app"><div class="appart"><span class="version">'+esc(a.version)+'</span><span aria-hidden="true">'+esc(a.icon)+'</span></div><div class="appinfo"><div class="meta"><span>'+esc(a.tag)+'</span><span class="status '+(published?"":"dev")+'">'+(published?"Sur GitHub Pages":"En préparation")+'</span></div><h3>'+esc(a.name)+'</h3><p>'+esc(a.desc)+'</p><div class="actions">'+(published?(a.repo==="mathsquest"?'<a class="play" style="display:inline-flex;align-items:center;text-decoration:none" href="./mathsquest/">Découvrir ↗</a><button type="button" class="source-link" style="border:0;background:transparent;cursor:pointer" data-play="'+index+'">Jouer</button>':'<button type="button" class="play" data-play="'+index+'">Lancer ici ↗</button><a class="source-link" href="'+gh+encodeURIComponent(a.repo)+'" target="_blank" rel="noopener">Code source ↗</a>'):'<button type="button" class="play" disabled>À venir</button><span class="source-link">Prototype</span>')+'</div></div></article>'
+ var index=data.indexOf(a),published=!!a.repo,ready=published&&a.status!=="verification";
+ return '<article class="app"><div class="appart"><span class="version">'+esc(a.version)+'</span><span aria-hidden="true">'+esc(a.icon)+'</span></div><div class="appinfo"><div class="meta"><span>'+esc(a.tag)+'</span><span class="status '+(ready?"":"dev")+'">'+(a.status==="verification"?"En vérification":published?"Sur GitHub Pages":"En préparation")+'</span></div><h3>'+esc(a.name)+'</h3><p>'+esc(a.desc)+'</p><div class="actions">'+(published?(a.repo==="mathsquest"?'<a class="play" style="display:inline-flex;align-items:center;text-decoration:none" href="./mathsquest/">Découvrir ↗</a><button type="button" class="source-link" style="border:0;background:transparent;cursor:pointer" data-play="'+index+'">Jouer</button>':(ready?'<button type="button" class="play" data-play="'+index+'">Lancer ici ↗</button>':'<button class="play" type="button" disabled>En vérification</button>')+'<a class="source-link" href="'+gh+encodeURIComponent(a.repo)+'" target="_blank" rel="noopener">Code source ↗</a>'):'<button type="button" class="play" disabled>À venir</button><span class="source-link">Prototype</span>')+'</div></div></article>'
  }).join("");
  cards.querySelectorAll("[data-play]").forEach(function(btn){btn.addEventListener("click",function(){show(data[Number(btn.dataset.play)],true)})});
 }
-function show(a,history){if(!a||!a.repo)return;current=a;var target=link(a.repo);title.textContent=a.name;openLink.href=target;openLink2.href=target;frame.src=target;player.classList.add("open");player.setAttribute("aria-hidden","false");document.body.classList.add("player-open");document.getElementById("back").focus();if(history){var u=new URL(location.href);u.searchParams.set("app",a.repo);window.history.pushState({app:a.repo},"",u)}}
+function show(a,history){if(!a||!a.repo||a.status==="verification")return;current=a;var target=link(a.repo);title.textContent=a.name;openLink.href=target;openLink2.href=target;frame.src=target;player.classList.add("open");player.setAttribute("aria-hidden","false");document.body.classList.add("player-open");document.getElementById("back").focus();if(history){var u=new URL(location.href);u.searchParams.set("app",a.repo);window.history.pushState({app:a.repo},"",u)}}
 function hide(history){frame.removeAttribute("src");current=null;player.classList.remove("open");player.setAttribute("aria-hidden","true");document.body.classList.remove("player-open");if(history){var u=new URL(location.href);u.searchParams.delete("app");window.history.pushState({},"",u)}}
-function sync(){var key=new URL(location.href).searchParams.get("app");var a=data.find(function(x){return x.repo===key});if(a){if(!current||current.repo!==a.repo)show(a,false)}else if(current)hide(false)}
+function sync(){var key=new URL(location.href).searchParams.get("app");var a=data.find(function(x){return x.repo===key&&x.status!=="verification"});if(a){if(!current||current.repo!==a.repo)show(a,false)}else if(current)hide(false)}
 document.querySelectorAll("[data-filter]").forEach(function(b){b.addEventListener("click",function(){filter=b.dataset.filter;document.querySelectorAll("[data-filter]").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});render()})});
 q.addEventListener("input",render);
 document.getElementById("featuredPlay").addEventListener("click",function(){var a=data.find(function(x){return x.name==="Maths Quest"});show(a,true)});
