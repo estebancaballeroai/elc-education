@@ -1,16 +1,16 @@
-# Rapport de validation — MATH SHIFT v0.1.0 (27/10/2026)
+# MATH SHIFT V0.2 — Contrôle qualité (27 octobre 2026)
 
-## Tests effectués
+## Vérifications automatisées
 
-- **Mathématiques** : 20/20 réponses attendues validées par les formules correspondantes ; réponses erronées refusées ; indices et solutions présents.
-- **Sauvegarde / XP** : création, assainissement des imports, relecture, absence d'XP supplémentaire lors d'une répétition.
-- **Navigation** : carte → Thalès → erreur → correction → défi suivant → trigonométrie → Pythagore → révision → exploration → statistiques → guide.
-- **Rendu** : Chromium headless en 320 × 640, 390 × 844 et 1280 × 900 ; pas de débordement horizontal ; images réelles chargées ; pas d'erreur JS détectée.
-- **Fonctionnalités** : curseur du laser, saisie des réponses, retour d'erreur, passage au défi suivant, trésor gratuit, compteur d'XP, filtres de révision.
+- 52 questions uniques / 5 stations : 7 Thalès, 7 trigonométrie, 6 Pythagore, 16 équations, 16 fonctions affines.
+- Test des réponses correctes et incorrectes, des deux paramètres a et b, des contraintes des curseurs et de l'unicité de chaque droite passant par deux points.
+- Contrôle de toutes les explications pédagogiques et étapes de la balance jusqu'à `x = ...`.
+- Sauvegardes antérieures compatibles : 20 défis V0.1 conservés, 32 nouveaux ajoutés sans perte d'XP.
+- Tests de navigation : carte, deux nouvelles stations, réponse fausse/correcte, révision, exploration libre sur 3 étapes et progression.
+- Contrôle console JavaScript et débordement horizontal en affichages mobiles.
 
-## Limites de vérification
+## Réserves honnêtes
 
-- Le navigateur de test du conteneur bloque les navigations vers localhost et `file://`. Les interactions ont donc été exécutées dans un document HTML injecté avec les vrais scripts et assets intégrés. La persistance `localStorage` a été vérifiée au niveau du moteur, mais pas en rechargement réel avec HTTPS.
-- Le service worker a été inspecté statiquement ; un véritable essai « hors réseau après publication » reste à faire avec une URL HTTPS de GitHub Pages.
-- Aucun test n'a encore été fait sur une **tablette Android physique ancienne**. Tester sur l'appareil cible avant de déclarer cette compatibilité confirmée.
-- Seule la première mission de 3e est présente ; l'ensemble du programme et le brevet blanc ne sont pas encore intégrés.
+- Les tests Chromium automatisés ne remplacent pas le retour d'un élève de 3e ni les essais sur les anciennes tablettes Android réelles.
+- Le mode hors ligne requiert un premier chargement réussi, un navigateur acceptant les service workers et un stockage disponible.
+- Le jeu ne constitue pas encore une préparation exhaustive au brevet.
