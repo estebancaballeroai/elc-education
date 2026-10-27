@@ -18,6 +18,9 @@ let notice='';
 let revisionFilter='restant';
 let soundContext=null;
 let previousScreen='map';
+let balanceStep=0;
+let functionA=0, functionB=0;
+let exploreRoute=null, exploreStep=0;
 const $=(selector)=>app.querySelector(selector);
 const escapeHtml=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number(n).toLocaleString('fr-FR',{maximumFractionDigits:2});
@@ -59,7 +62,8 @@ function icon(name,size=20){
   rotate:'<path d="M3 12a9 9 0 1 0 3-6M3 4v4h4"/>',
   download:'<path d="M12 3v12m-4-4 4 4 4-4M5 18v3h14v-3"/>',
   flag:'<path d="M4 21V4m0 1c7-4 10 4 16 0v11c-6 4-9-4-16 0"/>',
-  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>'
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>',
+  scale:'<path d="M12 3v17M5 7h14M8 21h8M5 7 2 13h6L5 7Zm14 0-3 6h6l-3-6Z"/>'
  };
  return `<svg class="icon" aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${paths[name]||paths.sparkle}</svg>`;
 }
@@ -87,9 +91,9 @@ function mapView(){
    <div class="hero-content">
     <div class="eyebrow">SAISON 01 <span></span> L'OBSERVATOIRE</div>
     <h1>Réveille la <span>Cité des<br>anomalies</span></h1>
-    <p>Trois mécanismes mystérieux. Des maths pour les réparer. Une aventure qui commence ici.</p>
+    <p>Cinq lieux mystérieux. Une aventure de géométrie, d’équations et de fonctions pour faire renaître la cité.</p>
     ${btn(`${icon('play',22)} ${total.tried?'Reprendre l’aventure':'Commencer l’aventure'} ${icon('arrow',18)}`,'continue','primary-button huge')}
-    <div class="hero-quick"><span>${icon('check',16)} ${total.success}/20 défis réussis</span><span>${icon('award',16)} ${done}/3 emblèmes</span></div>
+    <div class="hero-quick"><span>${icon('check',16)} ${total.success}/${total.total} défis réussis</span><span>${icon('award',16)} ${done}/${stations.length} emblèmes</span></div>
    </div>
    <img class="hero-person" src="assets/explorateur.webp" alt="Explorateur de MATH SHIFT" loading="eager" />
    <img class="hero-bot float" src="assets/nox.webp" alt="Nox, le petit robot compagnon" loading="eager" />
@@ -97,7 +101,7 @@ function mapView(){
   </div>
   <div class="content-pad">
    ${noticeHtml()}
-   <div class="section-heading"><div><span class="kicker">TON PARCOURS</span><h2>Les trois stations</h2></div><span class="section-note">Choisis ton chemin</span></div>
+   <div class="section-heading"><div><span class="kicker">TON PARCOURS</span><h2>Cinq quartiers à découvrir</h2></div><span class="section-note">Choisis ton chemin</span></div>
    <div class="station-grid">${stations.map((s,i)=>stationCard(s,i)).join('')}</div>
    <div class="exploration-banner"><div class="exploration-bg"></div><div class="exploration-copy"><span class="kicker">MODE LIBRE</span><h2>Exploration sans calcul</h2><p>Découvre trois lieux secrets de la cité. Ici, aucune bonne ou mauvaise réponse : tu explores à ton rythme.</p>${btn(`${icon('compass',19)} Explorer la cité`,'go-explore','outline-button')}</div><img class="exploration-bot" src="assets/nox.webp" alt="" loading="lazy" /></div>
    <div class="note-strip">${icon('info',18)} <span>Sans publicité, sans inscription, sans limite de temps. Tes progrès sont enregistrés uniquement sur cet appareil.</span></div>
@@ -112,10 +116,10 @@ function stationCard(s,index){
   <div class="station-bottom"><div class="small-progress"><span style="width:${percent}%"></span></div><strong>${st.solved}/${st.total}</strong><span class="arrow-disc">${icon('chevron',18)}</span></div></div></button>`;
 }
 function selectStation(id){
- stageId=id;const q=E.nextQuestion(questions,progress,id);questionId=q&&q.id;currentValue='';feedback=null;goto('mission');
+ stageId=id;const q=E.nextQuestion(questions,progress,id);questionId=q&&q.id;currentValue='';balanceStep=0;functionA=0;functionB=0;feedback=null;goto('mission');
 }
 function stationIntro(s,st){
- return `<div class="mission-banner"><div class="mission-image"></div><div class="mission-banner-cover"></div><button type="button" class="back-link" data-action="go-map">${icon('left',17)} Carte</button>
+ return `<div class="mission-banner mission-${s.id}"><div class="mission-image"></div><div class="mission-banner-cover"></div><button type="button" class="back-link" data-action="go-map">${icon('left',17)} Carte</button>
  <div class="mission-banner-text"><span class="eyebrow">CHAPITRE ${s.number} • ${escapeHtml(s.short)}</span><h1>${escapeHtml(s.name)}</h1><p>${escapeHtml(s.lore)}</p></div></div>
  <div class="station-line"><span>${icon('flag',19)} ${st.solved}/${st.total} maîtrisés</span><span>${st.visited}/${st.total} rencontrés</span></div>`;
 }
@@ -132,12 +136,12 @@ function missionView(){
    <article class="lesson-card theme-${s.color}">
     <div class="lesson-rail"><span class="chapter-badge">DÉFI ${String(number).padStart(2,'0')} <span>/ ${st.total}</span></span><span class="difficulty">${['','Initiation','Application','Défi'][q.difficulty]}</span></div>
     <div class="lesson-header"><div><h2>${escapeHtml(q.title)}</h2><p>${escapeHtml(q.story)}</p></div><span class="lesson-point">${icon('sparkle',18)} +XP</span></div>
-    <div class="diagram-frame" id="diagram">${diagram(q,initialVal(q))}</div>
-    <p class="diagram-caption">Schéma interactif — non à l'échelle</p>
+    <div class="diagram-frame ${q.kind==='equation'?'diagram-balance':q.kind==='function'?'diagram-flight':''}" id="diagram">${diagram(q,initialVal(q))}</div>
+    <p class="diagram-caption">${q.kind==='equation'?'Les étapes de la balance conservent les mêmes solutions.':q.kind==='function'?'Trajectoire en direct : les anneaux sont les points de passage.':'Schéma interactif — non à l’échelle'}</p>
     <div class="challenge-prompt"><span class="challenge-icon">${icon('help',19)}</span><p>${escapeHtml(q.prompt)}</p></div>
     <form id="answer-form" class="answer-form">
-      ${sliderInput(q,answered)}
-      <div class="answer-actions"><button type="submit" class="primary-button" >${icon('check',19)} Vérifier ma réponse</button>${btn(`${icon('help',17)} Un indice`,'hint','ghost-button')} </div>
+      ${q.kind==='equation'?balanceControls(q):q.kind==='function'?functionControls(q):sliderInput(q,answered)}
+      ${q.kind==='equation'||q.kind==='function'?'':`<div class="answer-actions"><button type="submit" class="primary-button" >${icon('check',19)} Vérifier ma réponse</button>${btn(`${icon('help',17)} Un indice`,'hint','ghost-button')} </div>`}
     </form>
     ${feedbackHtml(q,answered)}
     <div class="lesson-footer">${btn(`${icon('left',17)} Défi précédent`,'prev','light-button')}${btn(`${icon('arrow',17)} Passer / explorer`,'skip','light-button')}
@@ -168,6 +172,8 @@ function feedbackHtml(q,answered){
 function svgBase(label,inside){return `<svg class="geometry-svg" viewBox="0 0 400 290" role="img" aria-label="${escapeHtml(label)}" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter><linearGradient id="beam" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#41ecff"/><stop offset="100%" stop-color="#ffaa69"/></linearGradient></defs>${inside}</svg>`;}
 function point(x,y,label,theme=''){return `<circle cx="${x}" cy="${y}" r="5.5" fill="${theme||'#66e9ff'}" stroke="#e8ffff" stroke-width="1.4"/><text x="${x+9}" y="${y-8}" class="svg-label">${label}</text>`;}
 function diagram(q,value){
+ if(q.kind==='equation')return balanceDiagram(q);
+ if(q.kind==='function')return functionDiagram(q);
  if(q.station==='pont'){
   const A=[200,30],B=[65,244],C=[335,244];const t=q.AD/q.AB;const v=Math.max(0,Math.min(1,value/q.AC));
   const D=[A[0]+t*(B[0]-A[0]),A[1]+t*(B[1]-A[1])];
@@ -194,12 +200,92 @@ function diagram(q,value){
  ${point(93,236,'A')}${point(93,66,'B')}${point(323,236,'C')}
  <text x="38" y="154" class="svg-value">${a} m</text><text x="176" y="262" class="svg-value">${q.mode==='hyp'?b+' m':'? m'}</text><text x="230" y="139" class="svg-value">${q.mode==='hyp'?'? m':c+' m'}</text><text x="133" y="31" class="svg-note">Angle droit en A</text>`);
 }
+function balanceDiagram(q){
+ const current=balanceStep>0?q.plan[balanceStep-1].after:q.initial;
+ const sides=current.split(' = ');
+ const phase=balanceStep===q.plan.length?'ISOLÉE':`ÉTAPE ${balanceStep+1}`;
+ return `<div class="balance-platform" role="img" aria-label="Balance algébrique, égalité actuelle : ${escapeHtml(current)}">
+   <div class="balance-head"><span>${icon('scale',18)} BALANCE DES ÉGALITÉS</span><span>${phase}</span></div>
+   <div class="balance-machine"><div class="balance-beam"></div><div class="balance-pans">
+     <div class="balance-pan"><small>MEMBRE GAUCHE</small><strong>${escapeHtml(sides[0]||'')}</strong><span class="balance-pan-plate"></span></div>
+     <div class="balance-equals">=</div>
+     <div class="balance-pan"><small>MEMBRE DROIT</small><strong>${escapeHtml(sides[1]||'')}</strong><span class="balance-pan-plate"></span></div>
+   </div><div class="balance-base"></div></div>
+   <div class="balance-caption">${balanceStep===q.plan.length?'Les deux membres donnent la même valeur de x. Vérifie le résultat !':'Chaque action doit être effectuée sur les deux membres.'}</div>
+ </div>`;
+}
+function balanceControls(q){
+ const completed=balanceStep>=q.plan.length;
+ const step=q.plan[balanceStep];
+ const options=completed?[]:[
+  {label:step.label,correct:true},
+  {label:'Changer seulement un membre',correct:false},
+  {label:'Inverser un signe au hasard',correct:false}
+ ];
+ if(!completed){const shift=balanceStep%3; options.push(...options.splice(0,shift));}
+ return `<div class="operation-panel"><div class="operation-heading"><strong>${completed?'Dernier réglage : quelle est la valeur de x ?':`Choisis l’opération ${balanceStep+1} sur ${q.plan.length}`}</strong><span class="operation-dots">${q.plan.map((_,i)=>`<i class="${i<balanceStep?'done':''}"></i>`).join('')}</span></div>
+ ${completed?`<label class="answer-label" for="answer-number">Entre la solution trouvée :</label><div class="number-wrap"><input id="answer-number" type="text" inputmode="decimal" autocomplete="off" placeholder="x = ?" value="${escapeHtml(currentValue)}" aria-label="Solution de l'équation"/><span>x</span></div>`:
+ `<div class="operation-options">${options.map((option,i)=>btn(escapeHtml(option.label),'balance-step',`operation-button ${option.correct?'correct-path':''}`,`data-choice="${option.correct?'correct':'wrong'}" aria-label="${escapeHtml(option.label)}"`)).join('')}</div>
+ <p class="operation-small">Astuce : équilibre la balance, pas uniquement un de ses plateaux.</p>`}
+ <div class="answer-actions">${completed?`<button class="primary-button" type="submit">${icon('check',19)} Vérifier x</button>`:''}${btn(`${icon('help',17)} Indice de Nox`,'hint','ghost-button')}</div>
+ </div>`;
+}
+function functionDiagram(q,a=functionA,b=functionB){
+ const X=x=>45+x*49, Y=y=>147-y*4.2;
+ const pts=[[q.x1,q.y1],[q.x2,q.y2]];
+ const valid=pts.map(([x,y])=>a*x+b===y),hits=valid.filter(Boolean).length;
+ const path=`M ${X(0)} ${Y(b)} L ${X(6)} ${Y(6*a+b)}`;
+ const gridX=Array.from({length:7},(_,i)=>`<line x1="${X(i)}" y1="22" x2="${X(i)}" y2="260" stroke="#5794bd" opacity=".18"/><text x="${X(i)}" y="278" text-anchor="middle" class="svg-small">${i}</text>`).join('');
+ const gridY=[-20,-10,0,10,20].map(y=>`<line x1="34" y1="${Y(y)}" x2="353" y2="${Y(y)}" stroke="#5794bd" opacity=".22"/><text x="28" y="${Y(y)+4}" text-anchor="end" class="svg-small">${y}</text>`).join('');
+ const target=pts.map(([x,y],i)=>`<circle cx="${X(x)}" cy="${Y(y)}" r="13" fill="none" stroke="${valid[i]?'#80ffb5':'#ffd48a'}" stroke-width="3" stroke-dasharray="4 3"/><circle cx="${X(x)}" cy="${Y(y)}" r="3.5" fill="#ffffff"/><text x="${X(x)}" y="${Y(y)-17}" class="svg-label">${i?'B':'A'}(${x};${y})</text>`).join('');
+ const droneY=Math.max(17,Math.min(260,Y(a*3+b)));
+ return `<div class="flight-display"><div class="flight-status"><span>${icon('chart',16)} f(x) = ${a}x ${b<0?'−':'+'} ${Math.abs(b)}</span><span class="${hits===2?'ok':''}">${hits}/2 anneaux</span></div>
+ <svg class="geometry-svg flight-svg" viewBox="0 0 400 292" role="img" aria-label="Droite de la fonction du drone et deux points cibles" xmlns="http://www.w3.org/2000/svg">
+ <defs><filter id="flight-glow"><feGaussianBlur stdDeviation="4"/></filter><clipPath id="flight-clip"><rect x="34" y="22" width="320" height="238" rx="8"/></clipPath></defs>
+ ${gridX}${gridY}<path d="M34 147H365 M45 265V18" stroke="#c1e5ff" stroke-width="2"/><text x="366" y="157" class="svg-small">x</text><text x="49" y="17" class="svg-small">f(x)</text>
+ ${target}<g clip-path="url(#flight-clip)"><path d="${path}" stroke="#4ee9ff" stroke-width="10" opacity=".35" filter="url(#flight-glow)"/><path d="${path}" stroke="${hits===2?'#87ffbd':'#5be9ff'}" stroke-width="3.5" stroke-linecap="round"/></g>
+ <image href="assets/drone.webp" x="${X(3)-22}" y="${droneY-15}" height="30" width="56" opacity=".98"/>
+ <text x="204" y="288" text-anchor="middle" class="svg-note">${hits===2?'Trajectoire parfaite !':'Ajuste la pente et l’ordonnée à l’origine'}</text></svg></div>`;
+}
+function functionControls(q){
+ return `<div class="flight-console"><div class="flight-target"><span>Balise A : <b>(${q.x1} ; ${q.y1})</b></span><span>Balise B : <b>(${q.x2} ; ${q.y2})</b></span></div>
+ <div class="flight-control-grid"><div><label for="func-a">Pente <strong>a = <output id="out-a">${functionA}</output></strong></label><input type="range" id="func-a" min="-4" max="4" step="1" value="${functionA}" aria-label="Coefficient directeur a"/><small>Inclinaison de la droite</small></div>
+ <div><label for="func-b">Départ <strong>b = <output id="out-b">${functionB}</output></strong></label><input type="range" id="func-b" min="-10" max="10" step="1" value="${functionB}" aria-label="Ordonnée à l’origine b"/><small>Hauteur du drone quand x = 0</small></div></div>
+ <div class="answer-actions"><button type="submit" class="primary-button">${icon('play',19)} Lancer le drone</button>${btn(`${icon('help',17)} Un indice`,'hint','ghost-button')}</div></div>`;
+}
+const exploreScenes={
+ jardin:[
+  {text:'Une serre ancienne scintille sous un dôme ouvert. Un sentier longe la fontaine et un autre grimpe vers les branches.',choices:['Suivre les lanternes','Traverser le vieux pont']},
+  {text:'Un animal de lumière apparaît, puis s’éloigne derrière un rideau de feuilles phosphorescentes.',choices:['Observer sans bruit','Examiner les plantes étranges']},
+  {text:'Tu découvres un jardin suspendu et une petite boîte cachée dans les racines d’un arbre.',choices:['Ouvrir le coffre','Laisser un signe pour les prochains voyageurs']}
+ ],
+ passage:[
+  {text:'La brume engloutit une passerelle. Une lueur bleue indique un escalier, tandis qu’un chant vient des arches.',choices:['Descendre vers la lueur','Écouter les arches']},
+  {text:'Deux chemins convergent vers une ancienne station météorologique. Les instruments vibrent doucement.',choices:['Actionner la lunette','Observer les nuages']},
+  {text:'Une étoile artificielle flotte au-dessus d’un socle couvert de poussière.',choices:['Recueillir une étincelle','Dessiner la constellation']}
+ ],
+ archive:[
+  {text:'Une galerie oubliée s’ouvre derrière une porte couverte de symboles. Nox détecte un faible signal.',choices:['Entrer sans bruit','Inspecter les symboles']},
+  {text:'De petites sphères montrent des souvenirs d’anciens explorateurs. Une niche semble vide.',choices:['Regarder un souvenir','Explorer la niche']},
+  {text:'Sous une cloche de verre, une clé ancienne repose sur un coussin de velours.',choices:['Prendre la clé','L’examiner avec Nox']}
+ ]
+};
+function exploreStoryView(){
+ const item=secrets.find(s=>s.id===exploreRoute)||secrets[0];
+ const scene=exploreScenes[item.id][Math.min(exploreStep,2)];
+ return `<section class="common-page fade-in explore-story"><div class="story-art"><div class="story-overlay"><span class="kicker">EXPÉDITION LIBRE · ${escapeHtml(item.label)}</span><h1>Un chemin à inventer</h1><p>Sans calcul et sans mauvaise réponse.</p></div></div>
+ <div class="content-pad"><div class="story-progress">${[0,1,2].map((_,i)=>`<span class="${i<=exploreStep?'lit':''}"></span>`).join('')}</div>
+ <div class="story-card"><img src="assets/nox.webp" alt="Nox, ton compagnon"/><div><span class="kicker">MESSAGE DE NOX · ${exploreStep+1}/3</span><h2>${escapeHtml(item.label)}</h2><p>${escapeHtml(scene.text)}</p></div></div>
+ <div class="story-choices">${scene.choices.map((choice,i)=>btn(`${escapeHtml(choice)} ${icon('arrow',18)}`,'explore-choice','story-button',`data-choice="${i}"`)).join('')}</div>
+ ${btn(`${icon('left',17)} Autres chemins`,'go-explore','light-button')}</div></section>`;
+}
+
 function goNext(){
  const qs=questions.filter(q=>q.station===stageId);const idx=qs.findIndex(q=>q.id===questionId);
  const rest=qs.slice(idx+1).concat(qs.slice(0,idx+1));
  let next=rest.find(q=>!progress.solved[q.id]&&!progress.skipped[q.id]);
  if(!next){screen='result';feedback=null;currentValue='';render();window.scrollTo(0,0);return;}
- questionId=next.id;currentValue='';feedback=null;render();window.scrollTo(0,0);
+ questionId=next.id;currentValue='';balanceStep=0;functionA=0;functionB=0;feedback=null;render();window.scrollTo(0,0);
 }
 function resultView(){
  const s=getStation(stageId),st=E.stats(progress,questions,stageId),all=st.solved===st.total,unmastered=st.total-st.solved;
@@ -219,8 +305,8 @@ function revisionView(){
 function progressView(){
  const s=E.score(progress,questions),secretN=secrets.filter(a=>progress.secrets[a.id]).length;
  return `<section class="common-page fade-in"><div class="page-hero page-hero-progress"><span class="kicker">TON CARNET D'EXPLORATEUR</span><h1>Progrès et récompenses</h1><p>Tu gagnes tes emblèmes grâce à tes réussites. Aucune récompense payante et aucune obligation de jouer chaque jour.</p></div>
- <div class="content-pad"><div class="stat-grid"><div><b>${s.xp}</b><span>XP</span></div><div><b>${s.success}/20</b><span>défis maîtrisés</span></div><div><b>${s.percent}%</b><span>maîtrise</span></div></div>
- <div class="section-heading"><h2>Les emblèmes</h2><span>${stations.filter(x=>E.stationDone(questions,progress,x.id)).length}/3</span></div>
+ <div class="content-pad"><div class="stat-grid"><div><b>${s.xp}</b><span>XP</span></div><div><b>${s.success}/${s.total}</b><span>défis maîtrisés</span></div><div><b>${s.percent}%</b><span>maîtrise</span></div></div>
+ <div class="section-heading"><h2>Les emblèmes</h2><span>${stations.filter(x=>E.stationDone(questions,progress,x.id)).length}/${stations.length}</span></div>
  <div class="medal-list">${stations.map(x=>{
  const st=E.stats(progress,questions,x.id);const done=st.solved===st.total;
  return `<button class="medal-item ${done?'unlocked':'locked'}" type="button" data-action="open-station" data-id="${x.id}"><span class="medal-icon">${icon(done?'award':x.icon,33)}</span><span><strong>${escapeHtml(x.medal)}</strong><small>${done?'Emblème obtenu':'Encore '+(st.total-st.solved)+' défi(s) à réussir'}</small></span>${icon('chevron',18)}</button>`;
@@ -231,23 +317,31 @@ function progressView(){
  </div></section>`;
 }
 function exploreView(){
- return `<section class="common-page fade-in"><div class="page-hero page-hero-explore"><span class="kicker">EXPLORATION LIBRE</span><h1>Les secrets de la cité</h1><p>Choisis un chemin. Tu n'as aucune équation à résoudre ici : il suffit d'avoir envie d'explorer.</p></div><div class="content-pad">${noticeHtml()}<div class="explore-grid">${secrets.map((s,i)=>`<button type="button" class="explore-choice" data-action="secret" data-id="${s.id}"><span class="explore-icon">${icon(i===0?'sun':i===1?'compass':'book',30)}</span><span class="kicker">${['CHEMIN DE L’AUBE','CHEMIN DES BRUMES','CHEMIN DES SOUVENIRS'][i]}</span><strong>${escapeHtml(s.label)}</strong><small>${progress.secrets[s.id]?`Découvert : ${escapeHtml(s.name)}`:'Une curiosité t’attend derrière la porte…'}</small><span class="explore-go">${progress.secrets[s.id]?'Revisiter':'Explorer'} ${icon('arrow',17)}</span></button>`).join('')}</div>${btn(`${icon('left',17)} Retour à la carte`,'go-map','outline-button')}</div></section>`;
+ return `<section class="common-page fade-in"><div class="page-hero page-hero-explore"><span class="kicker">EXPLORATION LIBRE</span><h1>Les secrets de la cité</h1><p>Choisis un chemin. Tu n'as aucune équation à résoudre ici : il suffit d'avoir envie d'explorer.</p></div><div class="content-pad">${noticeHtml()}<div class="city-panorama" role="img" aria-label="Cité suspendue avec trois chemins d’exploration"></div><div class="explore-grid">${secrets.map((s,i)=>`<button type="button" class="explore-choice" data-action="secret" data-id="${s.id}"><span class="explore-icon">${icon(i===0?'sun':i===1?'compass':'book',30)}</span><span class="kicker">${['CHEMIN DE L’AUBE','CHEMIN DES BRUMES','CHEMIN DES SOUVENIRS'][i]}</span><strong>${escapeHtml(s.label)}</strong><small>${progress.secrets[s.id]?`Découvert : ${escapeHtml(s.name)}`:'Une curiosité t’attend derrière la porte…'}</small><span class="explore-go">${progress.secrets[s.id]?'Revisiter':'Explorer'} ${icon('arrow',17)}</span></button>`).join('')}</div>${btn(`${icon('left',17)} Retour à la carte`,'go-map','outline-button')}</div></section>`;
 }
 function guideView(){
- return `<section class="common-page fade-in"><div class="page-hero page-hero-guide"><span class="kicker">GUIDE DU JOUEUR</span><h1>Bienvenue dans MATH SHIFT</h1><p>Un jeu de maths pour comprendre, essayer, se tromper et recommencer.</p></div><div class="content-pad"><div class="guide-block"><h2>Comment jouer ?</h2><ol><li><strong>Choisis une station.</strong> Tu peux commencer où tu veux.</li><li><strong>Observe le schéma.</strong> Déplace le curseur ou écris ta réponse.</li><li><strong>Vérifie.</strong> Nox explique les erreurs et peut donner un indice.</li><li><strong>Continue.</strong> Si tu bloques, passe le défi et reviens plus tard grâce à « Réviser ».</li><li><strong>Collecte les emblèmes.</strong> Maîtrise tous les défis d'une station.</li></ol></div>
+ return `<section class="common-page fade-in"><div class="page-hero page-hero-guide"><span class="kicker">GUIDE DU JOUEUR</span><h1>Bienvenue dans MATH SHIFT</h1><p>Un jeu de maths pour comprendre, essayer, se tromper et recommencer.</p></div><div class="content-pad"><div class="guide-block"><h2>Comment jouer ?</h2><ol><li><strong>Choisis une station.</strong> Tu peux commencer où tu veux.</li><li><strong>Manipule les mécanismes.</strong> Ajuste la géométrie, équilibre l’équation ou programme le drone.</li><li><strong>Vérifie.</strong> Nox explique les erreurs et peut donner un indice.</li><li><strong>Continue.</strong> Si tu bloques, passe le défi et reviens plus tard grâce à « Réviser ».</li><li><strong>Collecte les emblèmes.</strong> Maîtrise tous les défis d'une station.</li></ol></div>
  <div class="guide-block"><h2>Paramètres</h2><div class="setting-row"><span>${icon('volume',20)} Son des réussites</span>${btn(progress.sound?'Activé':'Désactivé','toggle-sound',`toggle-button ${progress.sound?'on':''}`)}</div><div class="setting-row"><span>${icon('settings',20)} Animations réduites</span>${btn(progress.reduceMotion?'Activées':'Désactivées','toggle-motion',`toggle-button ${progress.reduceMotion?'on':''}`)}</div><p class="guide-caption">Le son est désactivé par défaut. Le jeu fonctionne sans compte et ne transmet pas les résultats.</p></div>
  <div class="guide-block"><h2>Sauvegarde locale</h2><p>Ton avancement est enregistré sur cet appareil, dans ce navigateur. Il peut disparaître si tu effaces ses données.</p><div class="setting-actions">${btn(`${icon('download',18)} Sauvegarder un fichier`,'export','outline-button')}<label class="import-label" for="import-save">Importer une sauvegarde<input type="file" id="import-save" accept="application/json,.json" /></label>${btn(`${icon('rotate',18)} Effacer ma progression`,'reset','danger-button')}</div><p class="guide-caption">Les fichiers de sauvegarde sont facultatifs. Aucune donnée n'est envoyée à un serveur.</p></div>
- <div class="guide-block"><h2>Programme et crédits</h2><p>Cette mission entraîne au théorème de Thalès et à la trigonométrie de 3e et révise le théorème de Pythagore. Le contenu s'appuie sur les attendus officiels de fin de 3e applicables en 2026-2027. Les exercices sont des créations originales, pas des annales officielles du brevet.</p><p>Jeu gratuit conçu pour ELC Éducation. Illustrations originales générées pour le jeu. Version ${content.version}. Fonctionne sur mobile, tablette ou ordinateur.</p></div>
+ <div class="guide-block"><h2>Programme et crédits</h2><p>La saison de découverte travaille Thalès, la trigonométrie, Pythagore, les équations du premier degré et les fonctions affines. Le contenu s'appuie sur les attendus officiels de fin de 3e applicables en 2026-2027. Les exercices sont des créations originales, pas des annales officielles du brevet.</p><p>Jeu gratuit conçu pour ELC Éducation. Illustrations originales générées pour le jeu. Version ${content.version}. Fonctionne sur mobile, tablette ou ordinateur.</p></div>
  ${btn('Retour à la carte','go-map','outline-button')}</div></section>`;
 }
 function render(){
- const views={map:mapView,mission:missionView,revision:revisionView,progress:progressView,explore:exploreView,guide:guideView,result:resultView};
+ const views={map:mapView,mission:missionView,revision:revisionView,progress:progressView,explore:exploreView,'explore-story':exploreStoryView,guide:guideView,result:resultView};
  app.innerHTML=`${header()}<main id="main-content">${(views[screen]||mapView)()}</main>${nav()}<div class="sr-only" aria-live="polite" id="announcer"></div>`;
  document.body.classList.toggle('reduce-motion',progress.reduceMotion);
 }
 function handleSubmit(evt){
  if(evt.target.id!=='answer-form')return;
  evt.preventDefault();const q=getQuestion();
+ if(q.kind==='function'){
+  if(E.isCorrect(q,{a:functionA,b:functionB})){
+   const already=!!progress.solved[q.id];E.markCorrect(progress,q);save();feedback={kind:'success',title:already?'Trajectoire confirmée !':'Drone arrivé ! Deux anneaux traversés',text:q.explain};playSound();render();return;
+  }
+  progress.attempts[q.id]=Math.min(50,(progress.attempts[q.id]||0)+1);save();
+  feedback={kind:'error',title:'Le drone a manqué une balise',text:progress.attempts[q.id]===1?'Observe si la droite passe par A et B. '+q.hint:q.explain};render();return;
+ }
+ if(q.kind==='equation'&&balanceStep<q.plan.length){feedback={kind:'hint',title:'Termine d’équilibrer',text:'Effectue chaque opération sur les deux membres. Tu pourras ensuite vérifier la valeur de x.'};render();return;}
  const field=$('#answer-number');const raw=field?field.value:currentValue;
  if(!Number.isFinite(E.cleanNumber(raw))){feedback={kind:'error',title:'Entre un nombre',text:'Écris une valeur numérique avant de vérifier. Exemple : 6 ou 6,5.'};render();return;}
  currentValue=raw;
@@ -276,6 +370,11 @@ app.addEventListener('submit',handleSubmit);
 app.addEventListener('input',evt=>{
  if(evt.target.id==='answer-range')adjustFromRange(evt.target.value);
  if(evt.target.id==='answer-number')adjustFromText(evt.target.value);
+ if(evt.target.id==='func-a'||evt.target.id==='func-b'){
+  if(evt.target.id==='func-a')functionA=Number(evt.target.value);else functionB=Number(evt.target.value);
+  const outA=$('#out-a'),outB=$('#out-b');if(outA)outA.textContent=String(functionA);if(outB)outB.textContent=String(functionB);
+  const q=getQuestion(),el=$('#diagram');if(q.kind==='function'&&el)el.innerHTML=functionDiagram(q);
+ }
 });
 app.addEventListener('change',evt=>{
  if(evt.target.id==='import-save'){
@@ -296,7 +395,7 @@ app.addEventListener('click',evt=>{
  if(action==='go-mission'){if(!questionId){selectStation(stageId);}else goto('mission');return;}
  if(action==='go-revision'){goto('revision');return;}
  if(action==='go-progress'){goto('progress');return;}
- if(action==='go-explore'){goto('explore');return;}
+ if(action==='go-explore'){exploreRoute=null;exploreStep=0;goto('explore');return;}
  if(action==='go-guide'){previousScreen=screen;goto('guide');return;}
  if(action==='continue'){
   const s=stations.find(x=>E.stats(progress,questions,x.id).visited<E.stats(progress,questions,x.id).total) || stations[0];selectStation(s.id);return;
@@ -304,7 +403,7 @@ app.addEventListener('click',evt=>{
  if(action==='open-station'){selectStation(id);return;}
  if(action==='open-question'){
   const q=questions.find(x=>x.id===id);if(!q)return;
-  stageId=q.station;questionId=q.id;currentValue='';feedback=null;goto('mission');return;
+  stageId=q.station;questionId=q.id;currentValue='';balanceStep=0;functionA=0;functionB=0;feedback=null;goto('mission');return;
  }
  if(action==='hint'){
   const q=getQuestion();feedback={kind:'hint',title:'L’indice de Nox',text:q.hint};render();return;
@@ -314,13 +413,32 @@ app.addEventListener('click',evt=>{
   const q=getQuestion();E.markSkipped(progress,q);save();goNext();return;
  }
  if(action==='prev'){
-  const qs=questions.filter(x=>x.station===stageId),i=qs.findIndex(x=>x.id===questionId);questionId=qs[Math.max(0,i-1)].id;currentValue='';feedback=null;render();return;
+  const qs=questions.filter(x=>x.station===stageId),i=qs.findIndex(x=>x.id===questionId);questionId=qs[Math.max(0,i-1)].id;currentValue='';balanceStep=0;functionA=0;functionB=0;feedback=null;render();return;
  }
  if(action==='filter-restant'){revisionFilter='restant';render();return;}
  if(action==='filter-tous'){revisionFilter='tous';render();return;}
  if(action==='secret'){
   const item=secrets.find(x=>x.id===id);if(!item)return;
-  const isNew=!progress.secrets[id];progress.secrets[id]=true;save();playSound();notice=(isNew?'Trésor découvert : ':'Trésor revisité : ')+item.name+' — '+item.detail;render();return;
+  exploreRoute=item.id;exploreStep=0;goto('explore-story');return;
+ }
+ if(action==='explore-choice'){
+  if(!exploreRoute)return;
+  if(exploreStep<2){exploreStep++;render();window.scrollTo(0,0);return;}
+  const item=secrets.find(x=>x.id===exploreRoute);if(!item)return;
+  const first=!progress.secrets[item.id];progress.secrets[item.id]=true;save();playSound();
+  exploreRoute=null;exploreStep=0;notice=(first?'Trésor découvert : ':'Trésor revisité : ')+item.name+' — '+item.detail;
+  goto('explore');notice=(first?'Trésor découvert : ':'Trésor revisité : ')+item.name+' — '+item.detail;render();return;
+ }
+ if(action==='balance-step'){
+  const q=getQuestion();if(q.kind!=='equation'||balanceStep>=q.plan.length)return;
+  if(target.dataset.choice==='correct'){
+   const done=q.plan[balanceStep];balanceStep++;
+   feedback={kind:'hint',title:'Opération équilibrée !',text:done.reason};
+  }else{
+   progress.attempts[q.id]=Math.min(50,(progress.attempts[q.id]||0)+1);save();
+   feedback={kind:'error',title:'Attention à l’égalité',text:'La même opération doit être faite aux deux membres pour conserver les solutions. '+q.hint};
+  }
+  render();return;
  }
  if(action==='toggle-sound'){progress.sound=!progress.sound;save();playSound();render();return;}
  if(action==='toggle-motion'){progress.reduceMotion=!progress.reduceMotion;persistAndRender();return;}

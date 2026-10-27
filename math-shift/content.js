@@ -66,10 +66,84 @@
       }
     })
   ];
+  // Deux quartiers de la V0.2 : activités originales de calcul littéral et de fonctions affines.
+  const signed=(n)=>n>=0?`+ ${n}`:`− ${Math.abs(n)}`;
+  const expr=(a,b)=>{
+    const first=a===0?'':a===1?'x':a===-1?'−x':`${a}x`;
+    return first ? b===0?first:`${first} ${signed(b)}` : String(b);
+  };
+  const equationCases=[
+    {a:2,b:3,d:0,x:4},{a:3,b:5,d:0,x:5},{a:4,b:-2,d:0,x:3},
+    {a:5,b:7,d:0,x:2},{a:2,b:-6,d:0,x:7},{a:7,b:1,d:0,x:2},
+    {a:5,b:4,d:2,x:3},{a:6,b:-2,d:3,x:4},{a:7,b:5,d:2,x:2},
+    {a:4,b:-3,d:1,x:6},{a:8,b:3,d:5,x:-2},{a:6,b:-4,d:2,x:-1},
+    {k:3,t:2,x:5},{k:2,t:-3,x:7},{k:4,t:-1,x:-2},{k:5,t:3,x:-1}
+  ];
+  function makeEquation(v,i){
+    let a,b,d,e,initial,plan=[];
+    if(v.k){
+      a=v.k;b=v.k*v.t;d=0;e=v.k*(v.x+v.t);
+      initial=`${v.k}(x ${signed(v.t)}) = ${e}`;
+      plan.push({label:'Développer les parenthèses',after:`${expr(a,b)} = ${e}`,reason:`${v.k} × x + ${v.k} × (${v.t}) = ${expr(a,b)}. On distribue le facteur à chaque terme.`});
+    }else{
+      ({a,b,d}=v);e=(a-d)*v.x+b;
+      initial=`${expr(a,b)} = ${expr(d,e)}`;
+    }
+    if(d!==0){
+      plan.push({label:`${d>0?'Soustraire':'Ajouter'} ${Math.abs(d)}x aux deux membres`,after:`${expr(a-d,b)} = ${e}`,reason:'On élimine le terme en x du membre de droite sans changer les solutions : on applique la même opération aux deux membres.'});
+    }
+    if(b!==0){
+      plan.push({label:`${b>0?'Soustraire':'Ajouter'} ${Math.abs(b)} aux deux membres`,after:`${expr(a-d,0)} = ${e-b}`,reason:`On isole le terme en x : ${expr(a-d,0)} = ${e} ${signed(-b)} = ${e-b}.`});
+    }
+    const coefficient=a-d;
+    if(coefficient!==1){
+      plan.push({label:`Diviser les deux membres par ${coefficient}`,after:`x = ${v.x}`,reason:`${expr(coefficient,0)} = ${e-b}, donc x = (${e-b}) ÷ (${coefficient}) = ${v.x}.`});
+    }
+    return {
+      id:`equation-${i+1}`,station:'equation',kind:'equation',title:i===15?'Le verrou central':`Verrou ${i+1}`,
+      difficulty:i<6?1:i<12?2:3,story:['La première porte résiste.','Un engrenage reste bloqué.','Les plateaux sont déséquilibrés.','Une rune indique une égalité.',
+      'Le mécanisme demande plus de précision.','La lumière se diffuse à travers la salle.','Les deux côtés semblent différents.','Le noyau reconnaît le bon raisonnement.'][i%8],
+      prompt:'Choisis des opérations qui préservent l’égalité, puis calcule la valeur de x pour ouvrir le verrou.',
+      initial,plan,answer:v.x,unit:'',
+      hint:`Commence par ${plan[0].label.toLowerCase()}. Applique toujours l’opération aux deux membres.`,
+      explain:`Équation de départ : ${initial}. ${plan.map(p=>p.after).join(' → ')}. Vérifie en remplaçant x par ${v.x} dans l’égalité initiale.`
+    };
+  }
+  const functionCases=[
+    [2,1],[1,3],[-1,4],[3,-2],[-2,7],[-3,10],[2,-5],[1,-4],
+    [-1,-3],[3,-6],[-2,-1],[-3,6],[4,-5],[-4,8],[2,6],[-1,8]
+  ];
+  function makeFunction(pair,i){
+    const [a,b]=pair,x1=i%3===0?2:1,x2=i%4===0?6:5;
+    const y1=a*x1+b,y2=a*x2+b;
+    return {
+      id:`fonction-${i+1}`,station:'fonction',kind:'function',title:i===15?'L’anneau d’arrivée':`Trajectoire ${i+1}`,
+      difficulty:i<4?1:i<11?2:3,
+      story:['Le drone attend sa première trajectoire.','Deux anneaux brillent au-dessus du canyon.','Le vent change de direction.','Les tours dessinent une nouvelle route.','Une balise est dissimulée dans la brume.','Le parcours se complique.'][i%6],
+      prompt:`Programme une fonction affine f(x) = a × x + b pour traverser les anneaux A(${x1} ; ${y1}) et B(${x2} ; ${y2}).`,
+      x1,x2,y1,y2,aTarget:a,bTarget:b,answer:a,unit:'',
+      hint:`Calcule la pente : a = (${y2} − (${y1})) ÷ (${x2} − ${x1}), puis b = ${y1} − a × ${x1}.`,
+      explain:`a = (${y2} − (${y1})) ÷ (${x2} − ${x1}) = ${a}. Puis b = ${y1} − ${a} × ${x1} = ${b}. La bonne fonction est f(x) = ${expr(a,b)} : elle passe par les deux anneaux.`
+    };
+  }
+  stations.push(
+    {id:'equation',number:'04',name:'L’atelier des équations',short:'Équations',icon:'scale',color:'gold',subtitle:'Équilibrer les deux côtés de la balance',
+      lore:'La fabrique des nombres s’est arrêtée. Chaque porte repose sur une égalité : choisis des opérations qui conservent l’équilibre pour libérer x.',
+      objective:'Résoudre une équation du premier degré en appliquant des opérations équivalentes.',
+      theory:'On conserve les solutions en ajoutant ou retirant le même terme aux deux membres, puis en divisant les deux membres par un même nombre non nul. Développe les parenthèses lorsque c’est nécessaire.',
+      medal:'Maître de l’équilibre',points:16},
+    {id:'fonction',number:'05',name:'La piste des fonctions',short:'Fonctions',icon:'chart',color:'mint',subtitle:'Piloter un drone à travers les anneaux',
+      lore:'Les routes aériennes de la cité sont brouillées. Programme la trajectoire du drone avec la pente a et la valeur initiale b. Deux balises suffisent pour déterminer une fonction affine.',
+      objective:'Déterminer les paramètres d’une fonction affine à partir de deux points.',
+      theory:'Une fonction affine s’écrit f(x) = ax + b. a est le coefficient directeur (variation de y pour 1 unité de x) et b est l’image de 0. Pour deux points, a = (y₂ − y₁) / (x₂ − x₁).',
+      medal:'Pilote des courbes',points:16}
+  );
+  questions.push(...equationCases.map(makeEquation),...functionCases.map(makeFunction));
+
   const secrets = [
     {id:'jardin',name:'Feuille d’azur',label:'Le Jardin suspendu',detail:'Une feuille métallique gravée d’un triangle. Les botanistes de la cité observaient les mêmes proportions dans les plantes.'},
     {id:'passage',name:'Fragment d’étoile',label:'Le Passage des brumes',detail:'Une poussière scintillante provenant du vieux ciel artificiel de la cité.'},
     {id:'archive',name:'Clé des archives',label:'La Galerie oubliée',detail:'Cette clé permettra peut-être d’ouvrir une nouvelle zone dans une prochaine version.'}
   ];
-  root.MathShiftContent={stations,questions,secrets,version:'0.1.0'};
+  root.MathShiftContent={stations,questions,secrets,version:'0.2.0'};
 })(typeof window!=='undefined'?window:globalThis);

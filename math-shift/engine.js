@@ -11,6 +11,11 @@
     return Number(s);
   }
   function isCorrect(q,value){
+    if(q.kind==='function'){
+      if(!value||typeof value!=='object')return false;
+      const a=cleanNumber(value.a),b=cleanNumber(value.b);
+      return Number.isFinite(a)&&Number.isFinite(b)&&a===q.aTarget&&b===q.bTarget;
+    }
     const n=cleanNumber(value);
     return Number.isFinite(n)&&Math.abs(n-q.answer)<0.001;
   }
