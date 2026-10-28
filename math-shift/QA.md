@@ -1,30 +1,30 @@
-# Rapport de validation — MATH SHIFT V0.3.0
+# Rapport de validation — MATH SHIFT V0.4.0
 
-**Date : 28 octobre 2026.** Périmètre : nouveaux défis de nombres/calcul littéral, parcours historiques, mobile, compatibilité de la sauvegarde.
+**28 octobre 2026** · Version candidate publiée après validation.
 
-## Tests réalisés
+## Tests automatiques
 
-| Domaine | Résultat | Preuve |
+| Périmètre | Vérification | Statut |
 |---|---|---|
-| Données et exactitude | **88/88** réponses attendues acceptées et réponses altérées refusées | `node tests/logic-v03.test.cjs` |
-| Régression | **52/52** exercices historiques conservés, stations anciennes fonctionnelles | `node tests/logic-v02.test.cjs` |
-| Puissances / racines / scientifique | **18** défis testés, formats décimaux FR, signe et exposant | `tests/logic-v03.test.cjs` |
-| Calcul littéral | **18** défis testés, distributivité simple/double, PGCD et signes | `tests/logic-v03.test.cjs` |
-| Interface interactive | Puissances, développement, scientifique, racines, factorisation, double distributivité, anciens ponts | `tests/browser-v03-smoke.py` |
-| Écrans | **320, 390, 768 et 1280 px** ; nouveaux écrans sans débordement horizontal | `MATHSHIFT_VIEWPORTS=... SKIP_SCENARIOS=1 python ...` |
-| Artworks | Deux nouveaux WebP chargés et utilisés dans les scènes | `tests/visual-v03.py` |
-| JavaScript | Aucune erreur de page lors des parcours testés | Tests Playwright |
-| Sauvegardes V0.1/V0.2 | Import/sanitisation des anciennes clés et XP ; nouvelles catégories initialement vides | Tests Node |
+| 122 défis / 9 stations | Réponse exacte acceptée, réponse fausse rejetée | OK — `logic-v04.test.cjs` |
+| 88 anciens défis | Identifiants, énoncés, réponses, indices et corrections comparés au snapshot V0.3 | OK |
+| 52 défis V0.1–V0.2 | Mécaniques historiques, réponses, sauvegarde | OK — `logic-v02.test.cjs` |
+| 36 défis V0.3 | Nombres, calcul littéral et corrections | OK — `logic-v03.test.cjs` |
+| Statistiques | Effectifs du journal = hauteur de barre, calculs exacts de moyenne, médiane, étendue | OK |
+| Probabilités | Issues favorables, dénominateur, indépendance avec remise, fractions équivalentes | OK |
+| Sécurité des réponses | Refus de fractions invalides (0 au dénominateur, signe négatif, décimaux), saisies vides | OK |
+| Sauvegardes | Préservation des réussites, des XP et des trésors antérieurs | OK |
+| Navigation mobile | Écrans 320/390/768/1280 px, pas de débordement horizontal dans les parcours testés | OK |
+| Parcours guidés | Barre erronée/corrigée, moyenne FR, médiane paire, étendue, urnes, dé, roue avec 10 simulations, double tirage, géométrie et guide | OK |
+| JavaScript | Aucune erreur `pageerror` lors des parcours Playwright ciblés | OK |
+| Nouveaux décors | Deux nouveaux WebP originaux intégrés dans CSS / scènes et inspectés | OK |
 
-## Méthode
+## Points de vigilance
 
-La politique réseau de l'environnement de test bloque `localhost` et `file:` dans Chromium. Pour les tests d'interface, Playwright injecte localement les vrais fichiers HTML, CSS et JavaScript dans un document de test ; pour les captures graphiques, les images WebP sont injectées sous forme de données afin de vérifier leur rendu réel. Le fonctionnement de GitHub Pages devra être confirmé après publication.
+- La simulation est réellement aléatoire : les proportions varient et **ne sont pas notées**. Le score repose sur le calcul théorique exact. Quatre roues imposent une observation préalable de 10 essais.
+- Le navigateur de test utilise un document injecté en mémoire car les connexions locales sont limitées. Le contrôle du déploiement GitHub Pages doit s'effectuer **après publication**, indépendamment de ces tests.
+- La mise à jour du service worker, le fonctionnement hors ligne et le tactile demandent encore un essai sur la tablette Android ancienne de destination ; les tests sur Chromebook/Android physique ne sont pas réalisés.
+- La progression dépend de l'espace de stockage local. L'export JSON demeure conseillé en cas de changement d'appareil ou d'effacement du cache.
+- La V0.4 couvre certains fondamentaux des statistiques et probabilités, **pas l'intégralité du programme de 3e**.
 
-## Points de vigilance non bloquants
-
-- Tests physiques sur tablette Android ancienne non réalisés (en particulier PWA, stockage, son et puissance graphique).
-- Le rendu avec un navigateur Android très ancien doit être vérifié sur appareil réel.
-- Cache hors ligne vérifiable en conditions HTTPS seulement.
-- Les exercices constituent un échantillon progressif, pas une couverture exhaustive du programme de 3e.
-
-**Statut :** candidat à la publication, en conservant la branche de sauvegarde V0.2.
+**Critère de publication :** pas de régression constatée sur l'échantillon de tests ; validité mathématique vérifiée. Le contrôle de l'URL publique est séparé de la validation locale.

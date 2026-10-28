@@ -1,84 +1,98 @@
-# MATH SHIFT — La Cité des anomalies (V0.3.0)
+# MATH SHIFT — La Cité des anomalies (V0.4.0)
 
-**ELC Éducation · Jeu gratuit de mathématiques pour la classe de 3e (France)**
+**ELC Éducation · Jeu gratuit de mathématiques pour les élèves de 3e en France.**
 
-Jouer : **https://estebancaballeroai.github.io/elc-education/math-shift/**
+**Jouer :** https://estebancaballeroai.github.io/elc-education/math-shift/
 
-Aventure mathématique mobile-first sans publicité, compte obligatoire, suivi publicitaire ni connexion à un serveur. Les progrès sont enregistrés dans le navigateur et peuvent être exportés/importés en JSON.
+Jeu éducatif mobile-first, sans publicité, inscription, serveur, collecte de données personnelles ni achat intégré. Progression et récompenses conservées dans le navigateur, export/import JSON possible. Compatible GitHub Pages ; fonctionnement hors ligne après premier chargement HTTPS **sous réserve des possibilités du navigateur**.
 
-## Sept quartiers — 88 défis jouables
+## Neuf quartiers — 122 défis
 
-| Quartier | Mécanique | Défis |
+| Station | Apprentissage / mécanique | Défis |
 |---|---|---:|
-| Pont des géomètres | Théorème de Thalès, passerelle mobile | 7 |
-| Tour des rayons | Trigonométrie, orienter un laser | 7 |
-| Cœur du réacteur | Théorème de Pythagore, reconstruire un circuit | 6 |
-| Atelier des équations | Résolution étape par étape, balance | 16 |
-| Piste des fonctions | Fonctions affines, piloter un drone avec a et b | 16 |
-| **Laboratoire des nombres (V0.3)** | 6 puissances, 4 racines carrées, 4 racines simplifiées, 4 écritures scientifiques | **18** |
-| **Forge des expressions (V0.3)** | 6 développements simples, 6 factorisations par PGCD, 6 doubles distributivités | **18** |
+| Pont des géomètres | Thalès : reconstruire un pont | 7 |
+| Tour des rayons | Trigonométrie : aligner un laser | 7 |
+| Cœur du réacteur | Pythagore : réparer des circuits | 6 |
+| Atelier des équations | Équations du 1er degré, balance étape par étape | 16 |
+| Piste des fonctions | Fonctions affines, trajectoire de drone | 16 |
+| Laboratoire des nombres | Puissances, racines, notation scientifique | 18 |
+| Forge des expressions | Développer, factoriser, double distributivité | 18 |
+| **Observatoire des données — NOUVEAU** | Diagramme en barres à reconstruire, moyenne, médiane, étendue | **16** |
+| **Station des probabilités — NOUVEAU** | Urnes, dés, roues, tirages avec remise ; simulateur aléatoire | **18** |
 
-Les **52 exercices de V0.2 sont conservés avec leurs identifiants et leurs réponses**. Deux nouveaux emblèmes s'ajoutent aux cinq précédents. Il existe aussi trois explorations narratives libres, sans questions scolaires, avec trois trésors à collectionner.
+**34 nouveaux défis**, soit **122 exercices au total**. Les 88 précédents ont conservé **leurs identifiants, questions, réponses, indices et corrections** (comparaison automatisée avec le snapshot V0.3).
 
-### Une mécanique qui sert les apprentissages
+## Comment fonctionnent les deux nouveaux quartiers ?
 
-- **Nombres :** les cristaux visualisent les facteurs d'une puissance ; les dalles quadrillées expliquent la racine carrée ; les prismes permettent de simplifier √72 en 6√2 ; le terminal scientifique vérifie séparément la mantisse et l'exposant.
-- **Expressions :** avant de résoudre, l'élève doit choisir une transformation correcte, puis composer des coefficients sur une forge qui réagit à ses saisies. La factorisation impose ici explicitement le **plus grand facteur entier positif commun**, afin que la correction soit non ambiguë.
-- **Erreurs :** premier essai → indice ; essais ultérieurs → démarche explicative. Une question peut être passée et retrouvée dans « Réviser ».
-- **Progression :** un succès est récompensé une seule fois ; les anciennes réussites V0.1 et V0.2 sont reprises automatiquement grâce à la clé locale historique `elc-mathshift-save-v1`.
+### Statistiques : enquêter sur les données
 
-## Démarrer
+- **Effectifs (4 défis) :** un journal d'observations est présenté. On compte les occurrences et reconstitue une barre manquante en actionnant un curseur ou en entrant sa hauteur. La barre se redessine en temps réel.
+- **Moyennes (4) :** interpréter un relevé de sondes et déplacer une ligne de moyenne proposée sur le graphique en tapant sa valeur.
+- **Médianes (4) :** trier les valeurs, repérer les valeurs centrales, puis calculer la médiane (effectif pair ou impair).
+- **Étendues (4) :** mettre en évidence les valeurs extrêmes et soustraire maximum − minimum.
 
-Ouvrir `index.html` dans un navigateur moderne ou publier le dossier `math-shift/` tel quel sur GitHub Pages. Aucune installation, compilation ni API n'est requise.
+### Probabilités : distinguer hasard et calcul
 
-Après le premier chargement HTTPS, le service worker met en cache l'interface, les scripts, les images et les exercices. Hors ligne, la disponibilité dépend de la prise en charge du navigateur et du maintien du cache.
+- **Urnes (6 défis) :** reconnaître les issues équiprobables et calculer les chances d'une couleur.
+- **Dés (4) :** calculer la probabilité d'un événement sur un dé équilibré à 6 faces.
+- **Roues (4) :** faire au moins 10 simulations réelles avant de donner la probabilité théorique, indépendante des résultats observés.
+- **Deux tirages avec remise (4) :** représenter deux tirages indépendants et multiplier les probabilités.
 
-### Arborescence
+Les boutons **« Simuler 10 tirages »** et **« Simuler 100 tirages »** génèrent des issues aléatoires avec JavaScript `Math.random()`. Le nombre d'essais et la fréquence empirique sont affichés ; ils **ne conditionnent pas la réussite** (hormis l'observation préalable de 10 tirages sur les roues). La réponse finale est une **fraction exacte**, y compris sous une forme équivalente (2/6 = 1/3).
+
+## Interface et graphismes
+
+Deux nouveaux décors 1280×720 WebP réalisés avec ImageGen puis optimisés : `assets/statistiques.webp` et `assets/hasard.webp`, utilisés réellement dans les cartes, bannières et scènes interactives. Les graphiques CSS/SVG servent à la **manipulation mathématique** et ne remplacent pas les décors illustrés. Interface responsive à partir de 320 px, commandes accessibles au toucher, sans dépendance distante.
+
+## Installation et publication
+
+1. Copier ce dossier tel quel dans `elc-education/math-shift/` (le dépôt est déjà organisé ainsi).
+2. GitHub Pages sert `index.html` à l'adresse ci-dessus.
+3. Si une ancienne version apparaît, actualiser la page : le service worker doit mettre à jour le cache `math-shift-v0.4.0`.
+
+Arborescence principale :
 
 ```text
 math-shift/
 ├── index.html
-├── styles.css                 # feuilles historiques V0.1-V0.2
-├── v03.css                   # nouveaux quartiers
-├── content.js                # 88 défis, explications et progression pédagogique
-├── engine.js                 # calcul et validation, sauvegarde V0.1/V0.2
-├── app.js                    # application interactive
-├── sw.js                     # cache offline V0.3.0
-├── manifest.webmanifest
+├── styles.css + v03.css + v04.css
+├── content.js                 # 122 défis
+├── engine.js                  # validation exacte, sauvegarde historique
+├── app.js                     # scènes et commandes du jeu
+├── sw.js / manifest.webmanifest
 ├── assets/
-│   ├── nombres.webp          # nouvelle scène ImageGen, laboratoire
-│   ├── litteral.webp         # nouvelle scène ImageGen, forge
-│   ├── ...                   # décors et personnages précédents, préservés
+│   ├── statistiques.webp      # nouvel artwork original
+│   ├── hasard.webp            # nouvel artwork original
+│   └── ...                    # tous les autres artworks préservés
 └── tests/
-    ├── logic-v02.test.cjs    # non-régression sur 52 anciens défis
-    ├── logic-v03.test.cjs    # validation exhaustive 88 défis
-    ├── browser-v03-smoke.py  # tests d'interaction mobile/desktop
-    └── visual-v03.py         # test visuel avec vraies ressources
+    ├── logic-v02.test.cjs
+    ├── logic-v03.test.cjs
+    ├── logic-v04.test.cjs
+    ├── legacy-v03.json
+    └── browser-v04-smoke.py
 ```
 
-Les scènes ont été produites à partir d'illustrations originales ImageGen, puis recadrées et optimisées en WebP. Les composants CSS et SVG des mécanismes servent aux **manipulations mathématiques**, pas à substituer des décors illustrés.
-
-## Tester
+### Vérification
 
 ```bash
 node tests/logic-v02.test.cjs
 node tests/logic-v03.test.cjs
-# Avec Python, Playwright et Chromium :
-python tests/browser-v03-smoke.py
-for size in 320 390 768 1280; do MATHSHIFT_VIEWPORTS=$size SKIP_SCENARIOS=1 python tests/browser-v03-smoke.py; done
-python tests/visual-v03.py
+node tests/logic-v04.test.cjs
+MATHSHIFT_VIEWPORTS=320,390,768,1280 python tests/browser-v04-smoke.py
 ```
 
-Les scripts Playwright utilisent un chargement du document en mémoire : la navigation vers `localhost` et `file:` est désactivée dans l'environnement de validation utilisé. Les captures et contrôles portent donc sur le **même HTML/JS/CSS et les mêmes fichiers images**, mais pas sur le service GitHub Pages lui-même.
+Le script navigateur injecte le HTML/CSS/JS localement pour contourner les restrictions réseau de l'environnement de test ; **il ne constitue pas un test de GitHub Pages en production**. Les captures vérifient le jeu et ses interactions ; les artworks sont inspectés séparément. Sur ancienne tablette Android, vérifier la persistance de la sauvegarde, le service worker, le tactile et la mémoire disponible.
 
-## Références et limites
+## Références pédagogiques
 
-Contenu aligné sur les **attendus de fin de 3e applicables en 2026-2027** : <https://eduscol.education.fr/document/14068/download>. Le programme de cycle 4 de 2026 s'appliquera à la classe de 3e à partir de septembre 2028 : <https://eduscol.education.gouv.fr/5736/ressources-d-accompagnement-du-programme-de-mathematiques-au-cycle-4>.
+- [Éduscol : attendus de fin de 3e en vigueur en 2026–2027](https://eduscol.education.fr/document/14068/download) — lire et représenter des données, effectifs et fréquences, étendue, médiane et calcul des probabilités.
+- [BO du 5 mars 2026 — nouveau cycle 4](https://www.education.gouv.fr/bo/2026/Hebdo10/MENE2602912A) : le nouveau programme s'appliquera en **3e à compter de la rentrée 2028**, pas en 2026.
 
-La V0.3 ne couvre pas encore les statistiques, les probabilités, les transformations du plan ni la programmation : ce sont des pistes pour les versions suivantes. Les défis sont originaux et ne remplacent ni le cours ni un examen blanc intégral du brevet.
+Les problèmes sont originaux : ce jeu est un outil de soutien, pas un remplacement du cours ni des sujets complets du brevet. D'autres aspects (programmation, transformations du plan, données groupées, probabilités plus élaborées, entraînement brevet) restent à développer.
 
-**À confirmer sur matériel réel :** tactile, audio, service worker et maintien de la sauvegarde sur les anciennes tablettes Android. Un navigateur dépourvu de certaines fonctions HTML5/JavaScript peut avoir un support partiel. La sauvegarde locale peut disparaître après effacement des données du navigateur ; utilisez l'export JSON pour la conserver.
+## Versions et confidentialité
 
-## Versions et sécurité
-
-La version précédente de GitHub est archivée dans une branche `backup/pre-math-shift-v0.3-*`. Toute évolution est créée sur une branche `feature/` et intégrée après tests. Aucun fichier des autres applications du dépôt `elc-education` n'est modifié pour cette V0.3.
+- Sauvegarde locale historique `elc-mathshift-save-v1` conservée ; aucun changement de format.
+- Les 88 anciens défis sont immuables ; les 34 nouveaux ont des identifiants indépendants.
+- Sauvegarde GitHub avant V0.4 dans `backup/pre-math-shift-v0.4-20261028`, développement dans `feature/math-shift-v0.4`, fusion uniquement après tests.
+- Aucun fichier extérieur au dossier `math-shift` n'est modifié.

@@ -21,6 +21,12 @@
       const m=cleanNumber(value.mantissa),e=cleanNumber(value.exponent);
       return Number.isFinite(m)&&Number.isInteger(e)&&m>=1&&m<10&&Math.abs(m-q.mantissa)<1e-9&&e===q.exponent;
     }
+    if(q.kind==='probability'){
+      if(!value||typeof value!=='object')return false;
+      const num=cleanNumber(value.num),den=cleanNumber(value.den);
+      if(!Number.isInteger(num)||!Number.isInteger(den)||num<0||den<=0||num>den)return false;
+      return num*q.denominator===q.numerator*den;
+    }
     if(q.kind==='algebra'){
       if(!value||typeof value!=='object')return false;
       const valid=(key,target)=>Number.isFinite(cleanNumber(value[key]))&&Math.abs(cleanNumber(value[key])-target)<1e-9;
