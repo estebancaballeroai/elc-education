@@ -1,0 +1,74 @@
+/* MATH SHIFT V0.3 — nouveaux quartiers illustrés et mécanismes d'apprentissage. */
+.station-art-nombres{background:linear-gradient(0deg,rgba(17,12,49,.9),rgba(28,14,61,.04) 90%),url('assets/nombres.webp') 16% 43%/cover}
+.station-art-litteral{background:linear-gradient(0deg,rgba(31,17,35,.84),rgba(60,29,38,.05) 90%),url('assets/litteral.webp') 82% 50%/cover}
+.mission-nombres .mission-image{background-image:linear-gradient(90deg,rgba(15,9,40,.92),rgba(10,22,43,.4)),url('assets/nombres.webp');background-position:center 45%}
+.mission-litteral .mission-image{background-image:linear-gradient(90deg,rgba(30,15,27,.9),rgba(11,29,47,.35)),url('assets/litteral.webp');background-position:center 48%}
+.theme-amethyst .station-symbol{color:#dbb6ff;background:#281942df;border-color:#a980ee80}
+.theme-copper .station-symbol{color:#ffca9b;background:#3a1e26e9;border-color:#e8a37280}
+.theme-amethyst .station-art-glow{background:radial-gradient(circle,rgba(177,119,247,.44),transparent 70%)}
+.theme-copper .station-art-glow{background:radial-gradient(circle,rgba(255,160,84,.45),transparent 70%)}
+.diagram-number{padding:0!important;border-color:rgba(193,153,255,.6);background:linear-gradient(100deg,rgba(15,10,44,.76),rgba(13,35,54,.6)),url('assets/nombres.webp') center 44%/cover}
+.diagram-forge{padding:0!important;border-color:rgba(255,181,113,.58);background:linear-gradient(100deg,rgba(40,17,28,.8),rgba(20,30,55,.45)),url('assets/litteral.webp') center 50%/cover}
+.number-machine,.algebra-forge{position:relative;width:100%;min-height:320px;overflow:hidden;padding:21px 18px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;text-align:center;background:radial-gradient(circle at 50% 53%,rgba(97,118,204,.22),transparent 68%),linear-gradient(0deg,rgba(5,13,34,.78),rgba(14,17,40,.36));isolation:isolate}
+.number-machine::before{content:"";position:absolute;inset:12px;z-index:-1;border:1px solid rgba(178,199,255,.27);border-radius:15px;pointer-events:none}
+.number-corner{position:absolute;top:19px;right:19px;font-size:30px;color:#8cecff;text-shadow:0 0 22px #6d90ff;animation:crystal-glow 4s ease-in-out infinite}
+.number-charge-label,.forge-machine-name{border-radius:30px;border:1px solid #73cbff75;background:#092d58bd;padding:6px 13px;color:#b9f8ff;font-size:11px;font-weight:850;letter-spacing:.15em}
+.number-main-equation{font-size:clamp(37px,8vw,63px);font-weight:950;color:#f8edff;text-shadow:0 0 35px #bd82ff;line-height:1.13}
+.atoms-row{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px;max-width:100%;margin:6px 0}
+.atom-chip{display:grid;place-items:center;min-width:44px;height:48px;padding:2px 5px;font-size:21px;font-weight:880;color:#fff;border:2px solid #bcb5ff;border-radius:13px;box-shadow:0 0 18px #786dfa88,inset 0 0 15px #af9dfa38;background:linear-gradient(135deg,#373a8c,#141f56);animation:atom-float 3.2s ease-in-out infinite;animation-delay:calc(var(--delay)*.17s)}
+.atom-times{font-size:21px;color:#d9edff;font-weight:750}
+.number-note,.forge-hintline{max-width:540px;color:#d8ebff;font-size:12px;line-height:1.6;margin:4px auto 0;background:#061427b8;border:1px solid #7eb6ff40;border-radius:12px;padding:8px 12px}
+.number-energy{height:5px;width:min(240px,80%);border-radius:20px;background:linear-gradient(90deg,#937bff,#49dff8,#bfffaa);box-shadow:0 0 18px #78b9ff}
+.square-demonstration{display:flex;align-items:center;justify-content:center;gap:27px;flex-wrap:wrap}
+.number-square{width:202px;height:202px;display:grid;grid-template-columns:repeat(var(--side),minmax(0,1fr));grid-template-rows:repeat(var(--side),minmax(0,1fr));gap:2px;padding:5px;background:#051c3fdf;border:2px solid #74d8ff;border-radius:9px;box-shadow:0 0 18px #65e3ff80}
+.number-square i{background:linear-gradient(135deg,#95e8ff,#7187ef);border-radius:1px;box-shadow:inset 1px 1px 1px #d9ffff7a}
+.square-callout{display:grid;gap:2px;justify-items:center;background:#0b244bcf;padding:13px 19px;border:1px solid #9be9ff6b;border-radius:15px;min-width:100px}
+.square-callout span{font-size:11px;color:#a3d3ff;letter-spacing:.09em;font-weight:750}
+.square-callout strong{color:#fff;font-size:31px}
+.square-callout small{color:#a8dafa}
+.radical-equation{display:flex;flex-wrap:wrap;gap:15px;justify-content:center;align-items:center;font-size:clamp(28px,6vw,47px);font-weight:860;color:#fff;text-shadow:0 3px 20px #000}
+.radical-equation>span:last-child{display:flex;gap:2px;align-items:baseline}
+.radical-equation b{display:inline-flex;justify-content:center;min-width:56px;color:#fff0b9;padding:2px 6px;border-bottom:3px solid #ffca80}
+.radical-arrow{color:#87e9ff;font-size:31px}
+.science-equation{font-size:clamp(23px,5vw,39px)}
+.science-equation sup{font-size:.6em;line-height:0}
+.number-split,.science-grid{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.number-split span,.science-grid span{border:1px solid #7cbdd267;padding:8px 11px;border-radius:10px;background:#18305bbf;font-size:11px;font-weight:730;color:#deefff}
+.forge-console{border:1px solid rgba(249,190,123,.32);background:#21172bc9;border-radius:17px;padding:17px;margin-bottom:18px}
+.forge-intro{display:block;color:#f5e6d9;font-weight:800;font-size:14px;line-height:1.5;margin:0 0 13px}
+.forge-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:12px 0}
+.forge-field{display:flex;flex-direction:column;gap:7px;color:#f1dcbe;font-size:12px;font-weight:780}
+.forge-field input{width:100%;min-width:0;min-height:52px;background:#091c37;border:1px solid #a7a8cc94;border-radius:12px;color:#fff;font-size:22px;font-weight:820;padding:10px 12px;text-align:center}
+.forge-field input:focus-visible{outline:3px solid #79dbff;outline-offset:1px}
+.forge-source{min-width:min(470px,92%);padding:15px 17px;border:1px solid rgba(255,209,134,.68);border-radius:15px;background:linear-gradient(130deg,rgba(101,53,37,.94),rgba(40,36,67,.91));color:#ffebbd;font-size:clamp(27px,6vw,45px);font-weight:850;box-shadow:0 7px 29px #0009,inset 0 1px 0 #fff3}
+.forge-machine-name{color:#ffd9af;border-color:#f4b47792;background:#50332fe9;display:flex;gap:5px;align-items:center}
+.forge-pipeline{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:9px}
+.forge-step{border-radius:50px;border:1px solid #b9aab976;padding:6px 13px;background:#182644b5;font-size:12px;color:#bbcee2;font-weight:750}
+.forge-step.on{background:#256b5be0;border-color:#65ffc3;color:#c2ffdf}
+.forge-beam{font-size:23px;color:#ffcf94;text-shadow:0 0 19px #ffab54}
+.forge-target{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;padding:12px 15px;border:1px solid #6d7d99ba;border-radius:15px;background:#07152de0;min-height:69px;width:min(580px,100%);color:#e5efff}
+.forge-target.unlocked{border-color:#ffd18fa6;box-shadow:0 0 24px #ffc17837}
+.formula-tile{padding:8px 11px;background:linear-gradient(130deg,#24457f,#332f6e);border:1px solid #aab9ff7d;border-radius:9px;color:#fff;min-width:65px;font-size:18px;font-weight:850}
+.formula-op{font-size:21px;color:#ffb97b;font-weight:800}
+.forge-lock{display:flex;align-items:center;gap:8px;font-size:12px;color:#c2d5ef}
+.operation-panel+.feedback,.forge-console+.feedback{margin-top:10px}
+@keyframes crystal-glow{0%,100%{opacity:.64;transform:scale(.97)}50%{opacity:1;transform:scale(1.08)}}
+@keyframes atom-float{0%,100%{transform:translateY(1px)}50%{transform:translateY(-4px)}}
+@media(max-width:560px){
+ .number-machine,.algebra-forge{min-height:295px;padding:20px 10px 15px;gap:11px}
+ .number-square{width:155px;height:155px;gap:1px}
+ .square-demonstration{gap:9px}
+ .square-callout{padding:6px 9px;min-width:85px}
+ .square-callout strong{font-size:25px}
+ .atom-chip{height:38px;min-width:34px;font-size:17px}
+ .atoms-row{gap:3px}
+ .forge-source{min-width:0;width:95%;font-size:29px}
+ .forge-console{padding:13px}
+ .forge-field input{min-height:49px}
+ .formula-tile{font-size:15px;padding:6px}
+ .number-split span,.science-grid span{padding:6px;font-size:10px}
+ .radical-equation{gap:7px;font-size:25px}
+ .science-equation{font-size:23px}
+}
+@media(prefers-reduced-motion:reduce){.number-corner,.atom-chip{animation:none}}
+body.reduce-motion .number-corner,body.reduce-motion .atom-chip{animation:none}
