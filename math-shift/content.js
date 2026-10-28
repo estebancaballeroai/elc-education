@@ -228,10 +228,147 @@
   }));
   questions.push(...powerQs,...rootQs,...simplifyQs,...scienceQs,...distributeQs,...factorQs,...doubleQs);
 
+  // V0.4 — laboratoire des donnees et experiences de hasard : un resultat
+  // theorique exact, une simulation aleatoire qui ne determine jamais la note.
+  stations.push(
+    {id:'statistiques',number:'08',name:'L’observatoire des données',short:'Statistiques',icon:'chart',color:'teal',subtitle:'Enquêter avec les relevés de la cité',
+      lore:'Une panne a mélangé les registres de l’observatoire. Reconstitue les graphiques, retrouve les valeurs centrales et découvre les informations cachées dans les mesures.',
+      objective:'Interpréter des séries et calculer effectifs, moyenne, médiane et étendue.',
+      theory:'Pour lire une série, on peut comparer des effectifs, calculer la moyenne (somme des valeurs divisée par leur nombre), déterminer la médiane après classement des données, ou l’étendue (maximum − minimum). Une valeur aberrante peut modifier fortement la moyenne.',
+      medal:'Détective des données',points:16},
+    {id:'hasard',number:'09',name:'La station des probabilités',short:'Probabilités',icon:'hexagon',color:'pink',subtitle:'Tester le hasard et comprendre les chances',
+      lore:'La station des chances alimente les portails de la cité. Lance les machines, observe les fréquences puis retrouve les probabilités exactes : une expérience ne garantit jamais le résultat attendu.',
+      objective:'Calculer une probabilité dans une situation d’équiprobabilité et comparer fréquences observées et probabilités théoriques.',
+      theory:'Dans une expérience où toutes les issues élémentaires sont équiprobables, P(A) = nombre d’issues favorables / nombre total d’issues. Une fréquence expérimentale peut s’en approcher avec de nombreux essais, mais varie d’une série à l’autre. Deux tirages avec remise sont indépendants : on multiplie les probabilités.',
+      medal:'Explorateur du hasard',points:18}
+  );
+  // Pour reconstruire les barres, le journal conserve toutes les observations.
+  // Leur ordre est melange de maniere deterministe pour la lecture pedagogique.
+  function shuffleLog(items,seed){
+    const result=items.slice();let state=seed*117+13;
+    for(let i=result.length-1;i>0;i--){state=(state*1103515245+12345) & 0x7fffffff;const j=state%(i+1);const t=result[i];result[i]=result[j];result[j]=t;}
+    return result;
+  }
+  const chartCases=[
+    {names:['Nord','Sud','Est','Ouest'],counts:[5,7,4,6],targetIndex:1,story:'Une panne a effacé une colonne du suivi des navettes.'},
+    {names:['Lune','Soleil','Comète','Étoile'],counts:[4,3,8,5],targetIndex:2,story:'Les chercheurs ont classé chaque observation du ciel.'},
+    {names:['Rouge','Bleu','Or','Vert'],counts:[6,9,4,5],targetIndex:0,story:'Le registre des cristaux contient les couleurs de chaque échantillon.'},
+    {names:['Alpha','Bêta','Gamma','Delta'],counts:[11,7,5,8],targetIndex:3,story:'Le dernier relevé regroupe les visiteurs de quatre secteurs.'}
+  ];
+  const statisticChart=chartCases.map((v,i)=>{
+    const observations=shuffleLog(v.names.reduce((all,name,j)=>all.concat(Array(v.counts[j]).fill(name)),[]),i+1);
+    const answer=v.counts[v.targetIndex];
+    return {id:`stats-barre-${i+1}`,station:'statistiques',kind:'statistics',mode:'bar',title:`Archive effacée ${i+1}`,
+      difficulty:i<2?1:i===2?2:3,story:v.story,labels:v.names,counts:v.counts,targetIndex:v.targetIndex,observations,answer,unit:'observations',maxBar:14,
+      prompt:`Compte dans le journal combien de fois apparaît « ${v.names[v.targetIndex]} », puis règle la barre manquante sur le diagramme.`,
+      hint:`Lis le journal d’observation et fais un bâton de comptage à chaque « ${v.names[v.targetIndex]} ». Le diagramme montre les autres catégories, pas la barre recherchée.`,
+      explain:`Dans les ${observations.length} observations, « ${v.names[v.targetIndex]} » apparaît exactement ${answer} fois. L’effectif est ${answer} ; la hauteur de sa barre est donc ${answer}. La somme des effectifs des quatre catégories vaut ${observations.length}.`};
+  });
+  const meanCases=[
+    [6,8,10,12],[5,7,6,10,12],[4,7,7,8,9,10],[13,15,10,12,16,18]
+  ];
+  const meanQs=meanCases.map((data,i)=>{
+    const sum=data.reduce((a,b)=>a+b,0),answer=sum/data.length;
+    return {id:`stats-moyenne-${i+1}`,station:'statistiques',kind:'statistics',mode:'mean',title:`Indice moyen ${i+1}`,
+      difficulty:i<2?1:2,story:'Le tableau des sondes est revenu, mais leur mesure moyenne a disparu.',data,answer,unit:'unités',
+      prompt:`Les ${data.length} sondes affichent ${data.join(' ; ')}. Quelle est la moyenne exacte de ces valeurs ?`,
+      hint:`Additionne toutes les mesures, puis divise la somme par le nombre de mesures (${data.length}). Une moyenne peut avoir une partie décimale.`,
+      explain:`La somme vaut ${data.join(' + ')} = ${sum}. Comme il y a ${data.length} mesures, la moyenne vaut ${sum} ÷ ${data.length} = ${fr(answer)}. La moyenne peut ne correspondre à aucune mesure prise individuellement.`};
+  });
+  const medianCases=[
+    [10,4,7,8,5],[11,8,5,14,6,9],[3,9,2,6,5,8,7],[14,8,17,12,19,10,20,16]
+  ];
+  const medianQs=medianCases.map((data,i)=>{
+    const sorted=data.slice().sort((a,b)=>a-b),n=sorted.length;
+    const left=sorted[Math.floor((n-1)/2)],right=sorted[Math.floor(n/2)],answer=(left+right)/2;
+    return {id:`stats-mediane-${i+1}`,station:'statistiques',kind:'statistics',mode:'median',title:`Dossier central ${i+1}`,
+      difficulty:i<1?1:i<3?2:3,story:'Les archives sont désordonnées. Classe les valeurs pour trouver leur centre.',data,answer,unit:'unités',
+      prompt:`Quelle est la médiane de cette série de ${n} mesures ? Utilise le bouton « Classer les données » pour repérer les cases centrales.`,
+      hint:n%2?`Classe les ${n} valeurs du plus petit au plus grand et prends la ${Math.ceil(n/2)}e, au milieu.`:
+        `Classe les ${n} valeurs par ordre croissant. Comme l’effectif est pair, calcule la moyenne des deux valeurs centrales.`,
+      explain:`Dans l’ordre croissant : ${sorted.join(' ; ')}. ${n%2?`La valeur au milieu est ${left}.`:`Les deux valeurs centrales sont ${left} et ${right} ; leur moyenne est (${left} + ${right}) ÷ 2 = ${fr(answer)}.`} La médiane partage la série ordonnée en deux groupes de même effectif (ou presque).`};
+  });
+  const rangeCases=[
+    [13,21,18,16,25],[7,2,10,9,1,6],[15,20,12,25,18,28],[40,32,49,36,50,44]
+  ];
+  const rangeQs=rangeCases.map((data,i)=>{
+    const smallest=Math.min(...data),largest=Math.max(...data),answer=largest-smallest;
+    return {id:`stats-etendue-${i+1}`,station:'statistiques',kind:'statistics',mode:'range',title:`Amplitude des signaux ${i+1}`,
+      difficulty:i<2?1:i===2?2:3,story:'Les variations de la station doivent être estimées avant de redémarrer les capteurs.',data,answer,unit:'unités',
+      prompt:`Quelle est l’étendue de la série ${data.join(' ; ')} ? Repère les extrêmes puis calcule leur différence.`,
+      hint:'L’étendue mesure l’écart entre la plus grande et la plus petite valeur : maximum − minimum. Utilise « Repérer les extrêmes » si besoin.',
+      explain:`La plus petite mesure est ${smallest} et la plus grande est ${largest}. L’étendue vaut donc ${largest} − ${smallest} = ${answer}. C’est l’amplitude des mesures, pas leur moyenne.`};
+  });
+  questions.push(...statisticChart,...meanQs,...medianQs,...rangeQs);
+
+  const colors=['bleu','rouge','or'];
+  function urnPool(counts){return counts.reduce((all,n,i)=>all.concat(Array(n).fill(colors[i])),[]);}
+  function makeChance(spec){
+    const outcomes=spec.pool,den=spec.mode==='two'?outcomes.length*outcomes.length:outcomes.length;
+    const successes=spec.mode==='two'?
+      outcomes.filter(x=>x===spec.first).length*outcomes.filter(x=>x===spec.second).length:
+      outcomes.filter(x=>spec.mode==='die'?spec.favorable.indexOf(x)!==-1:x===spec.target).length;
+    const result=Object.assign({station:'hasard',kind:'probability',unit:'',numerator:successes,denominator:den,answer:successes/den},spec);
+    const countText=spec.mode==='two'?`${outcomes.filter(x=>x===spec.first).length} possibilités pour le premier tirage et ${outcomes.filter(x=>x===spec.second).length} pour le second, sur ${outcomes.length} possibilités à chaque fois.`:`${successes} issues favorables sur ${den} issues équiprobables.`;
+    result.hint=spec.mode==='two'?`Les deux tirages se font avec remise : les chances restent identiques. Multiplie la chance du premier par celle du second. Compte les boules à chaque fois.`:
+      'Toutes les issues élémentaires sont équiprobables. Compte celles qui réalisent l’événement demandé, puis le nombre total ; écris la fraction favorable/total.';
+    result.explain=spec.mode==='two'?`Avec remise, les tirages sont indépendants : P = (${outcomes.filter(x=>x===spec.first).length}/${outcomes.length}) × (${outcomes.filter(x=>x===spec.second).length}/${outcomes.length}) = ${successes}/${den}. ${countText} Une simulation peut donner des fréquences différentes.`:
+      `On compte ${successes} issue${successes>1?'s':''} favorable${successes>1?'s':''} parmi ${den} issues équiprobables. Donc P = ${successes}/${den}. Une simulation de tirages donne une fréquence qui varie autour de cette probabilité, sans garantie sur un petit échantillon.`;
+    return result;
+  }
+  const urnCases=[
+    {counts:[3,2,1],target:'bleu'}, {counts:[2,5,1],target:'or'},
+    {counts:[4,3,2],target:'rouge'}, {counts:[6,2,4],target:'or'},
+    {counts:[1,4,5],target:'bleu'}, {counts:[5,5,2],target:'rouge'}
+  ];
+  const urnQs=urnCases.map((v,i)=>makeChance({
+    id:`proba-urne-${i+1}`,mode:'urn',title:`Urne des cristaux ${i+1}`,difficulty:i<2?1:i<4?2:3,
+    story:'La chambre du hasard mélange des cristaux de trois couleurs. Une seule boule est tirée au hasard.',
+    pool:urnPool(v.counts),target:v.target,
+    prompt:`Il y a ${v.counts[0]} boules bleues, ${v.counts[1]} rouges et ${v.counts[2]} dorées. Quelle est la probabilité de tirer une boule ${v.target==='or'?'dorée':v.target} ? Écris une fraction.`
+  }));
+  const dieCases=[
+    {faces:[2,4,6],event:'obtenir un nombre pair'},
+    {faces:[1],event:'obtenir exactement 1'},
+    {faces:[1,2,3,4,5],event:'ne pas obtenir 6'},
+    {faces:[3,6],event:'obtenir un multiple de 3'}
+  ];
+  const dieQs=dieCases.map((v,i)=>makeChance({
+    id:`proba-de-${i+1}`,mode:'die',title:`Dé orbital ${i+1}`,difficulty:i<1?1:i<3?2:3,
+    story:'Le dé orbital possède six faces numérotées de 1 à 6, toutes aussi probables.',
+    pool:[1,2,3,4,5,6],favorable:v.faces,event:v.event,
+    prompt:`On lance un dé équilibré à six faces. Quelle est la probabilité pour l’événement « ${v.event} » ? Écris une fraction.`
+  }));
+  const wheelCases=[
+    {pool:['bleu','rouge','bleu','or','bleu','rouge','or','bleu'],target:'bleu'},
+    {pool:['or','rouge','bleu','rouge','or','rouge','bleu','rouge'],target:'or'},
+    {pool:['bleu','bleu','or','rouge','bleu','or','or','rouge'],target:'rouge'},
+    {pool:['bleu','rouge','bleu','rouge','bleu','rouge','or','rouge'],target:'or'}
+  ];
+  const wheelQs=wheelCases.map((v,i)=>makeChance({
+    id:`proba-roue-${i+1}`,mode:'wheel',title:`Roue du hasard ${i+1}`,difficulty:i<2?2:3,
+    story:'La roue tourne librement. Ses huit secteurs ont exactement la même taille : compare la théorie aux tirages.',
+    pool:v.pool,target:v.target,requiresSimulation:true,
+    prompt:`Fais tourner la roue au moins 10 fois. Puis calcule la probabilité théorique de tomber sur un secteur ${v.target==='or'?'doré':v.target} (et non la fréquence de tes essais).`
+  }));
+  const doubleChanceCases=[
+    {counts:[2,1,0],first:'bleu',second:'bleu'},
+    {counts:[3,2,0],first:'bleu',second:'rouge'},
+    {counts:[2,2,1],first:'or',second:'bleu'},
+    {counts:[1,3,2],first:'rouge',second:'rouge'}
+  ];
+  const doubleChanceQs=doubleChanceCases.map((v,i)=>makeChance({
+    id:`proba-double-${i+1}`,mode:'two',title:`Double portail ${i+1}`,difficulty:i<1?2:3,
+    story:'Deux tirages consécutifs avec remise déclenchent le portail. Chaque boule tirée est replacée dans l’urne avant le tirage suivant.',
+    pool:urnPool(v.counts),first:v.first,second:v.second,
+    prompt:`Dans l’urne : ${v.counts[0]} bleue(s), ${v.counts[1]} rouge(s), ${v.counts[2]} dorée(s). On tire une boule, on la remet puis on tire encore. Quelle est la probabilité de tirer ${v.first} puis ${v.second} ?`
+  }));
+  questions.push(...urnQs,...dieQs,...wheelQs,...doubleChanceQs);
+
   const secrets = [
     {id:'jardin',name:'Feuille d’azur',label:'Le Jardin suspendu',detail:'Une feuille métallique gravée d’un triangle. Les botanistes de la cité observaient les mêmes proportions dans les plantes.'},
     {id:'passage',name:'Fragment d’étoile',label:'Le Passage des brumes',detail:'Une poussière scintillante provenant du vieux ciel artificiel de la cité.'},
     {id:'archive',name:'Clé des archives',label:'La Galerie oubliée',detail:'Cette clé permettra peut-être d’ouvrir une nouvelle zone dans une prochaine version.'}
   ];
-  root.MathShiftContent={stations,questions,secrets,version:'0.3.0'};
+  root.MathShiftContent={stations,questions,secrets,version:'0.4.0'};
 })(typeof window!=='undefined'?window:globalThis);
