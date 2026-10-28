@@ -3,11 +3,11 @@ const assert=require('node:assert/strict');
 const E=require('../engine.js');
 require('../content.js');
 const C=globalThis.MathShiftContent;
-assert.equal(C.version,'0.2.0');
-assert.equal(C.questions.length,52);
-assert.deepEqual(C.stations.map(s=>[s.id,C.questions.filter(q=>q.station===s.id).length]),[['pont',7],['laser',7],['reacteur',6],['equation',16],['fonction',16]]);
+assert.equal(C.version,'0.3.0');
+assert.equal(C.questions.length,88);
+assert.deepEqual(C.stations.slice(0,5).map(s=>[s.id,C.questions.filter(q=>q.station===s.id).length]),[['pont',7],['laser',7],['reacteur',6],['equation',16],['fonction',16]]);
 const ids=C.questions.map(q=>q.id);assert.equal(new Set(ids).size,ids.length,'unique question ids');
-for(const q of C.questions){
+for(const q of C.questions.slice(0,52)){
  assert.ok(q.hint.length>40 && q.explain.length>50,`explanations ${q.id}`);
  assert.ok(q.difficulty>=1&&q.difficulty<=3,`difficulty ${q.id}`);
  if(q.kind==='function'){
@@ -35,7 +35,7 @@ for(const q of C.questions){
 let old={version:1,solved:{'pont-1':{xp:30},'laser-1':{xp:25}},skipped:{'reacteur-1':true},attempts:{'pont-1':2},secrets:{jardin:true},sound:true};
 const migrated=E.sanitize(old);
 assert.equal(E.score(migrated,C.questions).success,2);
-assert.equal(E.score(migrated,C.questions).total,52);
+assert.equal(E.score(migrated,C.questions).total,88);
 assert.equal(E.stats(migrated,C.questions,'pont').solved,1);
 assert.equal(E.stats(migrated,C.questions,'equation').solved,0);
 assert.equal(E.stats(migrated,C.questions,'fonction').solved,0);
@@ -50,4 +50,4 @@ assert.ok(E.load(store).solved['equation-1']);
 assert.ok(E.load(store).solved['fonction-1']);
 for(const q of C.questions.filter(q=>q.station==='equation'))E.markCorrect(migrated,q);
 assert.ok(E.stationDone(C.questions,migrated,'equation'));
-console.log('OK — 52 questions, 5 stations, équations, deux paramètres de fonction, progression, migration des sauvegardes.');
+console.log('OK — 52 questions historiques conservées, 5 stations historiques, équations, deux paramètres de fonction, progression, migration des sauvegardes.');

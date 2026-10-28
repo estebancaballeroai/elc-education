@@ -1,6 +1,6 @@
 /* Hors ligne apres premiere consultation HTTPS; aucune requete tiers. */
-const CACHE='math-shift-v0.2.0';
-const FILES=['./','./index.html','./styles.css','./content.js','./engine.js','./app.js','./manifest.webmanifest','./assets/observatoire.webp','./assets/mission.webp','./assets/explorateur.webp','./assets/nox.webp','./assets/icon-192.png','./assets/icon-512.png','./assets/equations.webp','./assets/fonctions.webp','./assets/cite.webp','./assets/drone.webp'];
+const CACHE='math-shift-v0.3.0';
+const FILES=['./','./index.html','./styles.css','./v03.css','./content.js','./engine.js','./app.js','./manifest.webmanifest','./assets/observatoire.webp','./assets/mission.webp','./assets/explorateur.webp','./assets/nox.webp','./assets/icon-192.png','./assets/icon-512.png','./assets/equations.webp','./assets/fonctions.webp','./assets/cite.webp','./assets/drone.webp','./assets/nombres.webp','./assets/litteral.webp'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting()));
 });

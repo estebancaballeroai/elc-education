@@ -16,8 +16,21 @@
       const a=cleanNumber(value.a),b=cleanNumber(value.b);
       return Number.isFinite(a)&&Number.isFinite(b)&&a===q.aTarget&&b===q.bTarget;
     }
+    if(q.kind==='number'&&q.mode==='scientific'){
+      if(!value||typeof value!=='object')return false;
+      const m=cleanNumber(value.mantissa),e=cleanNumber(value.exponent);
+      return Number.isFinite(m)&&Number.isInteger(e)&&m>=1&&m<10&&Math.abs(m-q.mantissa)<1e-9&&e===q.exponent;
+    }
+    if(q.kind==='algebra'){
+      if(!value||typeof value!=='object')return false;
+      const valid=(key,target)=>Number.isFinite(cleanNumber(value[key]))&&Math.abs(cleanNumber(value[key])-target)<1e-9;
+      if(q.mode==='expand')return valid('a',q.ax)&&valid('b',q.constant);
+      if(q.mode==='factor')return valid('g',q.factor)&&valid('a',q.insideA)&&valid('b',q.insideB);
+      if(q.mode==='double')return valid('a',q.linear)&&valid('b',q.constant);
+      return false;
+    }
     const n=cleanNumber(value);
-    return Number.isFinite(n)&&Math.abs(n-q.answer)<0.001;
+    return Number.isFinite(n)&&Math.abs(n-q.answer)<1e-8;
   }
   function empty(){return {version:1,createdAt:now(),updatedAt:now(),solved:{},skipped:{},attempts:{},secrets:{},sound:false,reduceMotion:false};}
   function sanitize(data){
